@@ -1,4 +1,4 @@
-Este directorio es para subir scripts útiles o pequeños proyectos relacionados, generalmente de Linux / Debian
+Este directorio es para subir scripts útiles o pequeños proyectos, generalmente de Linux / Debian
 ---
 
 Para usar un script de estos, entra desde el terminal a la carpeta.
