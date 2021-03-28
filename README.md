@@ -1,11 +1,14 @@
+Este directorio es para subir scripts útiles o pequeños proyectos relacionados, generalmente de Linux / Debian
+---
+
 Para usar un script de estos, entra desde el terminal a la carpeta.
 
-1 - Abrir terminal de comandos
+1 - Abrir terminal de comandos (Ctrl + Alt + T)
 
-2 - (Recomendado) Listar el contenido de "readme.txt".
+2 - (Recomendado) Listar el contenido de "readme.txt" (ls, y cat readme.txt)
 
-3 - Dar permisos al archivo ".sh".
-sudo chmod +x NombreDeScript
+3 - Dar permisos ejecución al archivo ".sh".
+sudo chmod +x run-*.sh
 
 2 - Para ejecutarlo:
-./NombreDeScript
+./run-*.sh
