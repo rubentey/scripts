@@ -51,29 +51,28 @@ $a
 
 
 # Verificar que los datos siguen adelante
-read -p "¿Quieres continuar? [S/n] " continuar
+read -p "¿Quieres continuar? [s/n] " continuar
 
-case $continuar in
-[S-s])
-	$a "Comenzamos!"
-	
+if [ $continuar == 's' ] || [ $continuar == 'S' ];
+then
 
+main="$numGPIO-$nomServ-led.txt"
 
 # Crear script led service
 
+	$a "bien"
+	$a -e "#!/bin/bash \n \nwhile true; \ndo" > $main.txt
+	$a -e "systemctl status $nomServ | head -3 | tail -1 | grep \"(running)\" > /dev/null" >> $main.txt
+	$a -e "if [ '$?' = 0 ]; \nthen \n" >> $main.txt
+	$a -e "	python $main.txt > /dev/null \n	$a \"LED SSH on\" \n	else" >> $main.txt
 
 
-;;
 
-*)
+else
 	$a "Saliendo..."
-	exit;;
-esac
+	exit
+
+fi
 
 
 # Fin script
-
-
-
-
-
