@@ -3,6 +3,7 @@
 a=echo
 
 # Bienvenida
+$a "*Ejecutar con sudo*"
 $a
 $a " --------------------------------------------------- "
 $a "|  Bienvenid@ al asistente de RPi para .sh + .py,   |"
@@ -10,7 +11,6 @@ $a "|  .service y para LEDs indicando servicio activo!  |"
 $a " --------------------------------------------------- "
 sleep 0.4
 $a
-
 
 
 # Introducir número de GPIO para el LED y escribir nombre servicio
@@ -28,7 +28,7 @@ $a
 read -p "1/2 - Número de pin GPIO (el \"█\" de la tabla): " pin
 
 
-#Número de pin
+#Número de pin GPIO
 if [ $pin -ge 1 ] && [ $pin -le 40 ];
 then
 	if [ $pin == 7 ] || [ $pin == 11 ] || [ $pin == 12 ] || [ $pin == 13 ] || [ $pin == 15 ] || [ $pin == 16 ] || [ $pin == 18 ] || [ $pin == 22 ] || [ $pin == 29 ] || [ $pin == 31 ] || [ $pin == 32 ] || [ $pin == 33 ] || [ $pin == 35 ] || [ $pin == 36 ] || [ $pin == 37 ] || [ $pin == 38 ] || [ $pin == 40 ];
@@ -82,11 +82,13 @@ read -p "¿Quieres continuar? [s/n]: " continuar
 if [ $continuar == 'S' ] || [ $continuar == 's' ];
 then
 $a
+$a
 
 
 #-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
-rutaShPyLEDs=/etc/GPIO_LED_Services/
+#rutaShPyLEDs=/etc/GPIO_LED_SH_PY/
+rutaShPyLEDs=./GPIO_LED_SH_PY/
 
 
 # Crear .sh led estado, .py led encendido, y .py led apagado
@@ -94,30 +96,41 @@ $a "Scripts estado, encendido, y apagado:"
 	#Script bash comprueba si activo / apagado X servicio
 main="LED-$pin-$nomServ"
 
-$a "1/3 - Script bash estado servicio, hecho."
+$a "1/4 - Servicio, crear ruta carpeta, hecho."
+if [ -d $rutaShPyLEDs ]
+then
+	$a "Ya existe la ruta."
+else
+	mkdir $rutaShPyLEDs
+	chmod 777 $rutaShPyLEDs
+fi
+
+$a "2/4 - Script bash estado servicio, hecho."
+	touch $rutaShPyLEDs$main.sh
 	$a -e "#!/bin/bash \n# $main.sh \n \nwhile true; \ndo" > $rutaShPyLEDs$main.sh
 	$a -e "systemctl status $nomServ.service | head -3 | tail -1 | grep \"(running)\" > /dev/null \n" >> $rutaShPyLEDs$main.sh
-	$a '	if [ $? = 0 ];' >> $main.sh
+	$a '	if [ $? = 0 ];' >> $rutaShPyLEDs$main.sh
 	$a -e "	then \n		python $main-on.txt > /dev/null \n		$a \"LED $nomServ on\" \n	else" >> $rutaShPyLEDs$main.sh
 	$a -e "		python $main-on.txt > /dev/null \n		$a \"LED $nomServ off\" \n	fi \n \ndone" >> $rutaShPyLEDs$main.sh
 
-	chmod +x $rutaShPyLEDs$main.sh
-
+	#chmod +x $rutaShPyLEDs$main.sh
+	chmod 777 $rutaShPyLEDs$main.sh
 
 servLED="LED-$pin-$nomServ"
 	#Script python de encendido
-$a "2/3 - Script python encendido, hecho."
+$a "3/4 - Script python encendido, hecho."
 
-	$a -e "#!/bin/python \n# $servLED.py \n \nimport RPi.GPIO as GPIO \nimport time \n" > $rutaShPyLEDs$servLED-on.py
+	$a -e "#!/bin/python \n# $servLED-on.py \n \nimport RPi.GPIO as GPIO \nimport time \n" > $rutaShPyLEDs$servLED-on.py
 	$a -e "GPIO.setmode(GPIO.BOARD) \nGPIO.setup($pin,GPIO.OUT) \n" >> $rutaShPyLEDs$servLED-on.py
 	$a -e "GPIO.output($pin,1) \nprint (\"LED on\") \ntime.sleep(2) \n \nGPIO.cleanup()" >> $rutaShPyLEDs$servLED-on.py
 
 	#Script python de apagado
-$a "3/3 - Script python apagado, hecho."
+$a "4/4 - Script python apagado, hecho."
 
 	sed 's/(2,1)/(2,0)/g' $rutaShPyLEDs$servLED-on.py > $rutaShPyLEDs$servLED-temp.py
 	sed 's/print ("LED on")/print ("LED off")/g' $rutaShPyLEDs$servLED-temp.py > $rutaShPyLEDs$servLED-off.py
 	rm -r $rutaShPyLEDs$servLED-temp.py
+$a
 
 
 #-----------------------------------------------------------------------------------------------------
@@ -129,19 +142,27 @@ $a
 $a "Servicios controlar script .sh anterior:"
 	# Servicios systemd
 servicio="LED-$pin-$nomServ-servicio.service"
-rutaSysd=/etc/systemd/system/LED-Servicios/
+#rutaSysd=/etc/systemd/system/LED-Servicios/
+rutaSysd=./LED-Servicios/
 
 $a "1/3 - Servicio, crear ruta carpeta, hecho."
+if [ -d $rutaSysd ]
+then
+	$a "Ya existe la ruta."
+else
 	mkdir $rutaSysd
+	chmod 777 $rutaSysd
+fi
 
 $a "2/3 - Servicio, crear archivo .service de $nomServ, hecho."
-	$a -e "[Unit] \nDescription=Servicio de $nomServ, para LED en GPIO $pin." > $rutaSysd$servicio
-	$a -e "[Service] \nType=Simple \nExecStart=$rutaShPyLEDs$main.sh \nRestart=on-failure" >> $rutaSysd$servicio
-	$a -e "[Install] \nWantedBy=multi-user.target" >> $rutaSysd$servicio
+	$a -e "[Unit] \nDescription=Servicio de $nomServ, para LED en GPIO $pin. \n" > $rutaSysd$servicio
+	$a -e "[Service] \nType=Simple \nExecStart=$rutaShPyLEDs$main.sh \nRestart=on-failure \n" >> $rutaSysd$servicio
+	$a -e "[Install] \nWantedBy=multi-user.target \n" >> $rutaSysd$servicio
 
 $a "3/3 - Servicio, haciendo stop y start, hecho."
 	systemctl stop $servicio
 	systemctl start $servicio
+
 
 #-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
@@ -150,6 +171,7 @@ $a "3/3 - Servicio, haciendo stop y start, hecho."
 $a
 # Resumen de lo que se ha hecho
 
+$a
 $a " ----------- "
 $a "| Servicio: |"
 $a " ----------- "
@@ -158,25 +180,29 @@ systemctl status $servicio | head -3 | tail -1 | grep "(running)" > /dev/null
 
 if [ $? = 0 ];
 then
-        $a "¡El servicio '$nomServ' está activo!"
+        $a "¡El servicio '$servicio' está activo!"
 else
-        $a "¡El servicio '$nomServ', está parado o no funciona bien!"
+        $a "¡El servicio '$servicio', está parado o no funciona bien!"
 fi
 $a
 systemctl status $nomServ.service | head -10 | grep "Active:" > /dev/tty
 $a
 
+$a
 $a " ---------------- "
 $a "| Rutas creadas: |"
 $a " ---------------- "
 $a
-$a "En /etc/ para guardar los scripts:"
-ls /etc/ | grep LED
+$a "En /etc/GPIO_LED_SH_PY para guardar los scripts:"
+#ls /etc/ | grep LED
+ls ./GPIO_LED_SH_PY/ | grep LED
 $a
-$a "En /etc/systemd/system para guardar los servicios:"
-$a
-ls /etc/systemd/system/ | grep LED
+$a "En /etc/systemd/system/LED-Servicios para guardar los servicios:"
+#ls /etc/systemd/system/ | grep LED
+#ls /etc/systemd/system/LED-Servicios
+ls ./LED-Servicios/
 
+$a
 $a
 $a " ----------------------------- "
 $a "| Servicios asignados a LEDs: |"
