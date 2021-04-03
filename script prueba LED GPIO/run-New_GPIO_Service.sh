@@ -11,9 +11,14 @@ $a "|  .service y para LEDs indicando servicio activo!  |"
 $a " --------------------------------------------------- "
 sleep 0.4
 $a
+$a
 
 
 # Introducir número de GPIO para el LED y escribir nombre servicio
+$a "Actualmente se usan:"
+ls -a ./GPIO_LED_SH_PY/ | grep LED- | grep .sh
+$a
+$a
 $a "GPIOs que tienen LED, 17 en total:"
 $a "╔═════════════════════════════════════════════════════════╗"
 $a "║ 1 3 5 7  9 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 ║"
@@ -22,9 +27,7 @@ $a "║ - - - - -  █  -  █  █  -  █  -  -  -  -  █  -  █  █  █  
 $a "║ 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 ║"
 $a "╚═════════════════════════════════════════════════════════╝"
 $a
-$a "Actualmente se usan:"
-ls -a . | grep LED- | grep .sh
-$a
+$a "Crear uno nuevo:"
 read -p "1/2 - Número de pin GPIO (el \"█\" de la tabla): " pin
 
 
