@@ -84,14 +84,17 @@ then
 $a
 
 
+#-----------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------
+
 
 # Crear .sh led estado, .py led encendido, y .py led apagado
-
+$a "Scripts estado, encendido, y apagado:"
 	#Script bash comprueba si activo / apagado X servicio
 main="LED-$pin-$nomServ"
 
-$a "1/ Script bash, hecho"
-	$a -e "#!/bin/bash \n \nwhile true; \ndo" > $main.sh
+$a "1/3 - Script bash, hecho."
+	$a -e "#!/bin/bash \n# $main.sh \n \nwhile true; \ndo" > $main.sh
 	$a -e "systemctl status $nomServ.service | head -3 | tail -1 | grep \"(running)\" > /dev/null \n" >> $main.sh
 	$a '	if [ $? = 0 ];' >> $main.sh
 	$a -e "	then \n		python $main-on.txt > /dev/null \n		$a \"LED $nomServ on\" \n	else" >> $main.sh
@@ -100,26 +103,34 @@ $a "1/ Script bash, hecho"
 	chmod +x $main.sh
 
 
-servLED="LED-$pin-service-$nomServ"
+servLED="LED-$pin-$nomServ"
 	#Script python de encendido
-$a "2/ Script python encendido, hecho"
+$a "2/3 - Script python encendido, hecho."
 
-	$a -e "#!/bin/python \n \nimport RPi.GPIO as GPIO \nimport time \n" > $servLED-on.py
+	$a -e "#!/bin/python \n# $servLED.py \n \nimport RPi.GPIO as GPIO \nimport time \n" > $servLED-on.py
 	$a -e "GPIO.setmode(GPIO.BOARD) \nGPIO.setup($pin,GPIO.OUT) \n" >> $servLED-on.py
 	$a -e "GPIO.output($pin,1) \nprint (\"LED on\") \ntime.sleep(2) \n \nGPIO.cleanup()" >> $servLED-on.py
 
 	#Script python de apagado
-$a "3/ Script python apagado, hecho"
+$a "3/3 - Script python apagado, hecho."
 
-	cp $servLED-on.py $servLED-temp.py
-	sed 's/(2,1)/(2,0)/g' $servLED-temp.py > $servLED-temp2.py
-	sed 's/print ("LED on")/print ("LED off")/g' $servLED-temp2.py > $servLED-off.py
-	rm -r $servLED-temp.py $servLED-temp2.py
+	sed 's/(2,1)/(2,0)/g' $servLED-on.py > $servLED-temp.py
+	sed 's/print ("LED on")/print ("LED off")/g' $servLED-temp.py > $servLED-off.py
+	rm -r $servLED-temp.py
 
+
+#-----------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------
+
+
+$a
+# Crear servicio systemd
+$a "Servicios controlar script .sh anterior:"
+	# Servicios systemd
+servicio="LED-$pin-$nomServ-servicio.service"
+
+$a "1/ - Servicio para $nomServ, hecho."
 	
-
-
-
 
 
 
