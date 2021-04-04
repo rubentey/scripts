@@ -131,8 +131,9 @@ $a "3/4 - Script python encendido, hecho."
 $a "4/4 - Script python apagado, hecho."
 
 	sed 's/(2,1)/(2,0)/g' $rutaShPyLEDs$servLED-on.py > $rutaShPyLEDs$servLED-temp.py
-	sed 's/print ("LED on")/print ("LED off")/g' $rutaShPyLEDs$servLED-temp.py > $rutaShPyLEDs$servLED-off.py
-	rm -r $rutaShPyLEDs$servLED-temp.py
+	sed 's/print ("LED on")/print ("LED off")/g' $rutaShPyLEDs$servLED-temp.py > $rutaShPyLEDs$servLED-temp2.py
+	sed 's/on.py/off.py/g' $rutaShPyLEDs$servLED-temp2.py > $rutaShPyLEDs$servLED-off.py
+	rm -r $rutaShPyLEDs$servLED-temp.py $rutaShPyLEDs$servLED-temp2.py
 $a
 
 
@@ -181,9 +182,9 @@ $a
 # Resumen de lo que se ha hecho
 
 $a
-$a " ------------------ "
-$a "| Servicio creado: |"
-$a " ------------------ "
+$a " -------------------------------------------- "
+$a "| Servicio creado, y comprobación de estado: |"
+$a " -------------------------------------------- "
 $a
 systemctl status $sysServ | head -3 | tail -1 | grep "(running)" > /dev/null
 
@@ -198,9 +199,9 @@ systemctl status $sysServ.service | head -10 | grep "Active:" > /dev/tty
 
 $a
 $a
-$a " ------------------- "
-$a "| Archivos creados: |"
-$a " ------------------- "
+$a " -------------------------------------- "
+$a "| Archivos creados para este servicio: |"
+$a " -------------------------------------- "
 $a
 $a "En /etc/GPIO_LED_SH_PY/ para guardar los scripts:"
 #ls /etc/GPIO_LED_SH_PY/ | grep LED
@@ -212,9 +213,9 @@ ls ./LED-Servicios/ | grep "LED-$pin"
 
 $a
 $a
-$a " ----------------------------------------- "
-$a "| Servicios asignados a LEDs actualmente: |"
-$a " ----------------------------------------- "
+$a " --------------------------------------- "
+$a "| Todos los servicios asignados a LEDs: |"
+$a " --------------------------------------- "
 $a
 ls $rutaShPyLEDs | grep -v "py"
 
