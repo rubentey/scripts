@@ -11,13 +11,11 @@ $a "|  .service y para LEDs indicando servicio activo!  |"
 $a " --------------------------------------------------- "
 sleep 0.4
 $a
-$a
 
 
 # Introducir número de GPIO para el LED y escribir nombre servicio
 $a "Actualmente en uso:"
 ls ./GPIO_LED_SH_PY/ | grep -v "py"
-$a
 $a
 $a "GPIOs que tienen LED, 17 en total:"
 $a "╔═════════════════════════════════════════════════════════╗"
@@ -28,32 +26,33 @@ $a "║ 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 ║"
 $a "╚═════════════════════════════════════════════════════════╝"
 $a
 $a "Crear uno nuevo:"
-read -p "1/2 - Número de pin GPIO (el \"█\" de la tabla): " pin
 
 
 #Número de pin GPIO
+read -p "1/2 - Número de pin GPIO (el \"█\" de la tabla): " pin
+$a
+
 if [ $pin -ge 1 ] && [ $pin -le 40 ];
 then
 	if [ $pin == 7 ] || [ $pin == 11 ] || [ $pin == 12 ] || [ $pin == 13 ] || [ $pin == 15 ] || [ $pin == 16 ] || [ $pin == 18 ] || [ $pin == 22 ] || [ $pin == 29 ] || [ $pin == 31 ] || [ $pin == 32 ] || [ $pin == 33 ] || [ $pin == 35 ] || [ $pin == 36 ] || [ $pin == 37 ] || [ $pin == 38 ] || [ $pin == 40 ];
 	then
-		$a >> /dev/null
+		$a "!El pin $pin tiene LED!"
 	else
-		$a
-		$a "¡El GPIO $pin no tiene LED, recomiendo elegir otro!"
-		$a "      ¡Puede dar error si sigues adelante!"
-		$a
+		$a "!El pin $pin no tiene LED!"
+		$a "¡Puede dar error si sigues!"
 	fi
 else
-	$a
 	$a "Elige del 1 al 40!"
 	sleep 1.5
 	clear
 	sh $0
 fi
 
+
+
 # Servicio a controlar
-read -p "2/2 - Nombre de Servicio (p.e.: cups): " nomServ
-$a
+read -p "2/2 - Nombre de servicio sin \".service\" (p.e.: cups): " nomServ
+$a. 
 
 systemctl status $nomServ.service | head -3 | tail -1 | grep "(running)" > /dev/null
 
@@ -89,7 +88,7 @@ $a
 
 
 #-----------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------
+
 #rutaShPyLEDs=/etc/GPIO_LED_SH_PY/
 rutaShPyLEDs=./GPIO_LED_SH_PY/
 
@@ -99,45 +98,76 @@ $a "Scripts estado, encendido, y apagado:"
 	#Script bash comprueba si activo / apagado X servicio
 main="LED-$pin-$nomServ"
 
+
+
 $a "1/4 - Script, crear ruta carpeta, hecho."
 if [ -d $rutaShPyLEDs ]
 then
 	$a "Ya existe la ruta."
 else
-	mkdir $rutaShPyLEDs
+	mkdir -p $rutaShPyLEDs
 	chmod 777 $rutaShPyLEDs
+	# quizá mejor poner un "chown root:root"
 fi
 
-$a "2/4 - Script bash estado servicio, hecho."
-	touch $rutaShPyLEDs$main.sh
-	$a -e "#!/bin/bash \n# $main.sh \n \nwhile true; \ndo" > $rutaShPyLEDs$main.sh
-	$a -e "systemctl status $nomServ.service | head -3 | tail -1 | grep \"(running)\" > /dev/null \n" >> $rutaShPyLEDs$main.sh
-	$a '	if [ $? = 0 ];' >> $rutaShPyLEDs$main.sh
-	$a -e "	then \n		python $main-on.txt > /dev/null \n		$a \"LED $nomServ on\" \n	else" >> $rutaShPyLEDs$main.sh
-	$a -e "		python $main-on.txt > /dev/null \n		$a \"LED $nomServ off\"  \n	fi \n \nsleep 2 \n \ndone" >> $rutaShPyLEDs$main.sh
 
-	#chmod +x $rutaShPyLEDs$main.sh
-	chmod 777 $rutaShPyLEDs$main.sh
+
+$a "2/4 - Script bash estado servicio, hecho."
+
+nomFinalSH="$rutaShPyLEDs$main"
+
+	$a "#!/bin/bash" > $nomFinalSH.sh
+	$a "#$main.sh" >> $nomFinalSH.sh
+	$a "" >> $nomFinalSH.sh
+	$a "while true;" >> $nomFinalSH.sh
+	$a "do" >> $nomFinalSH.sh
+	$a "systemctl status $nomServ.service | head -3 | tail -1 | grep \"(running)\" > /dev/null" >> $nomFinalSH.sh
+	$a "" >> $nomFinalSH.sh
+	$a '	if [ $? = 0 ];' >> $nomFinalSH.sh
+	$a "    then" >> $nomFinalSH.sh
+	$a "        python $main-on.py > /dev/null" >> $nomFinalSH.sh
+	$a "        echo "LED SSH on"" >> $nomFinalSH.sh
+	$a "    else" >> $nomFinalSH.sh
+	$a "        python $main-off.py > /dev/null" >> $nomFinalSH.sh
+	$a "        echo "LED SSH off"" >> $nomFinalSH.sh
+	$a "    fi" >> $nomFinalSH.sh
+	$a "" >> $nomFinalSH.sh
+	$a "sleep 0.1" >> $nomFinalSH.sh
+	$a "done" >> $nomFinalSH.sh
+
+	chmod +x $nomFinalSH.sh
+
+
 
 servLED="LED-$pin-$nomServ"
 	#Script python de encendido
 $a "3/4 - Script python encendido, hecho."
 
-	$a -e "#!/bin/python \n# $servLED-on.py \n \nimport RPi.GPIO as GPIO \n" > $rutaShPyLEDs$servLED-on.py
-	$a -e "GPIO.setmode(GPIO.BOARD) \nGPIO.setup($pin,GPIO.OUT) \n" >> $rutaShPyLEDs$servLED-on.py
-	$a -e "GPIO.cleanup($pin) \nGPIO.output($pin,1) \nprint (\"LED on\")" >> $rutaShPyLEDs$servLED-on.py
+nomFinalPY="$rutaShPyLEDs$servLED"
+
+$a "#!/bin/python" > $nomFinalPY-on.py
+$a "#Pin: $pin	Service: $nomServ" >> $nomFinalPY-on.py
+$a "" >> $nomFinalPY-on.py
+$a "import RPi.GPIO as GPIO" >> $nomFinalPY-on.py
+$a "" >> $nomFinalPY-on.py
+$a "GPIO.setmode(GPIO.BOARD) " >> $nomFinalPY-on.py
+$a "GPIO.setup($pin,GPIO.OUT) " >> $nomFinalPY-on.py
+$a "" >> $nomFinalPY-on.py
+$a "GPIO.output($pin,1)" >> $nomFinalPY-on.py
+$a "print (\"LED on\")" >> $nomFinalPY-on.py
+$a "GPIO.cleanup()" >> $nomFinalPY-on.py
+$a "" >> $nomFinalPY-on.py
+
+
 
 	#Script python de apagado
 $a "4/4 - Script python apagado, hecho."
 
-	sed 's/(2,1)/(2,0)/g' $rutaShPyLEDs$servLED-on.py > $rutaShPyLEDs$servLED-temp.py
-	sed 's/print ("LED on")/print ("LED off")/g' $rutaShPyLEDs$servLED-temp.py > $rutaShPyLEDs$servLED-temp2.py
-	sed 's/on.py/off.py/g' $rutaShPyLEDs$servLED-temp2.py > $rutaShPyLEDs$servLED-off.py
-	rm -r $rutaShPyLEDs$servLED-temp.py $rutaShPyLEDs$servLED-temp2.py
+	sed 's/,1)/,0)/g' $nomFinalPY-on.py > $nomFinalPY-temp.py
+	sed 's/on")/off")/g' $nomFinalPY-temp.py > $nomFinalPY-off.py
+	rm -r $nomFinalPY-temp.py
 $a
 
-
-#-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
 
 
@@ -155,15 +185,42 @@ if [ -d $rutaSysd ]
 then
 	$a "Ya existe la ruta."
 else
-	mkdir $rutaSysd
+	mkdir -p $rutaSysd
 	chmod 777 $rutaSysd
+	# quizá mejor poner un "chown root:root"
 fi
 
+nomFinalSRV=$rutaSysd$servicio
 $a "2/3 - Servicio, crear archivo .service de $nomServ, hecho."
-	$a -e "[Unit] \nDescription=Servicio de $nomServ, para LED en GPIO $pin. \nAfter=network.target \n" > $rutaSysd$servicio
-	$a -e "[Service] \nType=Simple \nExecStart=$rutaShPyLEDs$main.sh \nRestart=on-failure \n" >> $rutaSysd$servicio
-	#$a -e "[Install] \nWantedBy=multi-user.target \n" >> $rutaSysd$servicio
-	$a -e "[Install] \nWantedBy=graphical.target \n" >> $rutaSysd$servicio
+#	$a -e "[Unit] \nDescription=Servicio de $nomServ, para LED en GPIO $pin. \nAfter=network.target #\n" > $rutaSysd$servicio
+#	$a -e "[Service] \nType=Simple \nExecStart=$rutaShPyLEDs$main.sh \nRestart=on-failure \n" >> #$rutaSysd$servicio
+#	#$a -e "[Install] \nWantedBy=multi-user.target \n" >> $rutaSysd$servicio
+#	$a -e "[Install] \nWantedBy=graphical.target \n" >> $rutaSysd$servicio
+
+
+	$a "[Unit]" > $nomFinalSRV
+	$a "Description= Servicio de $nomServ para LED en GPIO $pin" >> $nomFinalSRV
+	$a "Documentation=Para + info, mi GitHub: https://github.com/rubentey/scripts" >> $nomFinalSRV
+	$a "After=systemd-user-sessions.service" >> $nomFinalSRV
+	$a "Wants=network.target" >> $nomFinalSRV
+	$a "" >> $nomFinalSRV
+	$a "[Service]" >> $nomFinalSRV
+	$a "Type=simple" >> $nomFinalSRV
+	$a "ExecStart=/usr/bin/anydesk --service" >> $nomFinalSRV
+	$a "#Restart=on-abort" >> $nomFinalSRV
+	$a "#PIDFile=/var/run/anydesk.pid" >> $nomFinalSRV
+	$a "#KillMode=mixed" >> $nomFinalSRV
+	$a "#TimeoutStopSec=30" >> $nomFinalSRV
+	$a "#User=root" >> $nomFinalSRV
+	$a "#LimitNOFILE=100000" >> $nomFinalSRV
+	$a "" >> $nomFinalSRV
+	$a "[Install]" >> $nomFinalSRV
+	$a "WantedBy=multi-user.target" >> $nomFinalSRV
+
+
+	# ln -s /lib/systemd/system/$nomFinalSRV /etc/systemd/system/$nomFinalSRV
+	# chmod 611 /lib/systemd/system/$nomFinalSRV
+	# chown root:root /lib/systemd/system/$nomFinalSRV
 
 sysServ=LED-$pin-$nomServ-servicio
 $a "3/3 - Servicio, habilitar, recargar, reiniciarlo, hecho."
@@ -174,7 +231,6 @@ $a "3/3 - Servicio, habilitar, recargar, reiniciarlo, hecho."
 	systemctl restart $sysServ
 
 
-#-----------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------
 
 
