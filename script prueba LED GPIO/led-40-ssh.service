@@ -1,0 +1,16 @@
+#/etc/systemd/system/led-40-ssh.service
+
+[Unit]
+Description=Servicio de ssh para GPIO 40
+After=network.target
+
+[Service]
+ExecStart=/home/pi/led-service-ssh.sh
+Restart=always
+WorkingDirectory=/home/pi
+User=pi
+Group=pi
+Environment=GOPATH=/home/pi/go
+
+[Install]
+WantedBy=multi-user.target
