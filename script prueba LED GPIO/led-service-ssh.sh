@@ -1,9 +1,9 @@
 #!/bin/bash
 
 a=echo
+ruta_actual=$(pwd)
 
 # Bienvenida
-$a
 $a " -------------------------------------------------- "
 $a "|  Bienvenid@ al asistente de RPi para .sh + .py,  |"
 $a "|  .service, de LEDs indicando servicio activo!    |"
@@ -26,17 +26,23 @@ then
 	$a "1 - Ejecutar script con sudo"
 	reset
 	$a "Ejecutando \"sudo $0\""
-	sudo sh $0 #si esto lo ve mi tutora, me mata
+	sudo sh $0 #si lo ve manuela, me mata
 	
 
 elif [ $menu_inicio -eq 2 ];
 then
 	$a "2 - Consultar LEDs y servicio asignado"
-	$a "Actualmente en uso:"
-	$a "-------------------"
-	ls ./GPIO_LED_SH_PY/ | grep -v ".py"
-	$a
-
+		#if [ $(ls /home/ruben/scripts/script_prueba_LED_GPIO/GPIO_LED_SH_PY/ | grep -v ".py") ];
+		#then
+			$a
+			$a "Actualmente en uso (/etc/GPIO_LED_SH_PY/):"
+			$a "-------------------"
+			ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
+			$a
+		#else
+		#	$a "No se han encontrado"
+		#	$a
+		#fi
 
 elif [ $menu_inicio -eq 3 ];
 then
@@ -44,9 +50,9 @@ then
 	$a "------------------------------"
 	$a
 	# Introducir número de GPIO para el LED y escribir nombre servicio
-	$a "Actualmente en uso:"
+	$a "Actualmente en uso (/etc/GPIO_LED_SH_PY/):"
 	$a "-------------------"
-	ls ./GPIO_LED_SH_PY/ | grep -v ".py"
+	ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
 	$a
 	$a "GPIOs que tienen LED, 17 en total:"
 	$a "╔═════════════════════════════════════════════════════════╗"
@@ -67,9 +73,9 @@ then
 		then
 			if [ $pin -eq 7 ] || [ $pin -eq 11 ] || [ $pin -eq 12 ] || [ $pin -eq 13 ] || [ $pin -eq 15 ] || [ $pin -eq 16 ] || [ $pin -eq 18 ] || [ $pin -eq 22 ] || [ $pin -eq 29 ] || [ $pin -eq 31 ] || [ $pin -eq 32 ] || [ $pin -eq 33 ] || [ $pin -eq 35 ] || [ $pin -eq 36 ] || [ $pin -eq 37 ] || [ $pin -eq 38 ] || [ $pin -eq 40 ];
 			then
-				$a "!El pin $pin tiene LED!"
+				$a "¡El pin $pin tiene LED!"
 			else
-				$a "!El pin $pin no tiene LED!"
+				$a "¡El pin $pin no tiene LED!"
 				$a "¡Puede dar error si sigues!"
 			fi
 			#$a "" > /dev/null
@@ -114,10 +120,6 @@ then
 
 		#------------------------------------------------------------------------
 
-		ruta_actual=$(pwd)
-		#rutaShPy=/etc/GPIO_LED_SH_PY/
-		rutaShPy=$ruta_actual/GPIO_LED_SH_PY/
-
 
 		# Crear .sh led estado, .py led encendido, y .py led apagado
 		$a "Scripts estado, encendido, y apagado:"
@@ -125,19 +127,19 @@ then
 		
 
 		$a "1/4 - Script, crear ruta carpeta, hecho."
-			if [ -d $rutaShPy ]
+			if [ -d /etc/GPIO_LED_SH_PY ]
 			then
 				$a "Ya existe la ruta."
 			else
-				mkdir -p $rutaShPy
-				chmod 777 $rutaShPy
+				mkdir -p /etc/GPIO_LED_SH_PY
+				chmod 777 /etc/GPIO_LED_SH_PY
 				# quizá mejor poner un "chown root:root"
 			fi
 
 
 		$a "2/4 - Script bash estado servicio, hecho."
 			main="LED-$pin-$nomServ"
-			nomFinalSH="$rutaShPy$main"
+			nomFinalSH="/etc/GPIO_LED_SH_PY/$main"
 
 			$a "#!/bin/bash" > $nomFinalSH.sh
 			$a -e "#$main.sh \n" >> $nomFinalSH.sh
@@ -161,7 +163,7 @@ then
 		#Script python de encendido
 		$a "3/4 - Script python encendido, hecho."
 			
-			nomFinalPY="$rutaShPy\LED-$pin-$nomServ"
+			nomFinalPY="/etc/GPIO_LED_SH_PY/$main"
 
 			$a "#!/bin/python" > $nomFinalPY-on.py
 			$a -e "#Pin: $pin	Service: $nomServ \n" >> $nomFinalPY-on.py
@@ -188,17 +190,16 @@ then
 		$a "Servicios controlar script .sh anterior:"
 		# Servicios systemd
 		servicio="LED-$pin-$nomServ-servicio.service"
-		#rutaSysd=/etc/systemd/system/
-		rutaSysd=./LED-Servicios/
+		rutaSysd="/etc/systemd/system/"
 
 		$a "1/3 - Servicio, crear ruta carpeta, hecho."
 			# puede que no haya que crear carpeta
-			if [ -d $rutaSysd ]
+			if [ -d /etc/systemd/system/ ]
 			then
-			$a "Ya existe la ruta."
+				$a "Ya existe la ruta."
 			else
-			mkdir -p $rutaSysd
-			chmod 777 $rutaSysd
+				mkdir -p /etc/systemd/system/
+				chmod 777 /etc/systemd/system/
 			# quizá mejor poner un "chown root:root"
 			fi
 
@@ -223,11 +224,6 @@ then
 			$a "[Install]" >> $nomFinalSRV
 			$a "WantedBy=multi-user.target" >> $nomFinalSRV
 
-			# ln -s /lib/systemd/system/$nomFinalSRV /etc/systemd/system/$nomFinalSRV
-			# chmod 611 /lib/systemd/system/$nomFinalSRV
-			# chown root:root /lib/systemd/system/$nomFinalSRV
-
-
 		
 		$a "3/3 - Servicio, habilitar, recargar, reiniciarlo, hecho."
 			sysServ=LED-$pin-$nomServ-servicio
@@ -237,13 +233,13 @@ then
 			systemctl restart $sysServ
 
 
+
 		#------------------------------------------------------------------------
 
 
-		$a
-		# Resumen de lo que se ha hecho
 
-		reset
+		# Resumen de lo que se ha hecho
+		#reset
 		$a " -------------------------------------------- "
 		$a "| Servicio creado, y comprobación de estado: |"
 		$a " -------------------------------------------- "
@@ -257,7 +253,7 @@ then
 			fi
 			$a
 
-			systemctl status $sysServ.service | head -10 | grep "Active:" > /dev/tty
+			systemctl status $sysServ.service | head -3 | tail -1 | grep "Active:" > /dev/tty
 
 		$a
 		$a
@@ -266,21 +262,18 @@ then
 		$a " -------------------------------------- "
 		$a
 			$a "En /etc/GPIO_LED_SH_PY/ para guardar los scripts:"
-			#ls /etc/GPIO_LED_SH_PY/ | grep LED
-			ls $ruta_actual/GPIO_LED_SH_PY/ | grep "LED-$pin"
+			ls /etc/GPIO_LED_SH_PY/ | grep "LED-$pin"
 			$a
 			$a "En /etc/systemd/system/ para guardar los servicios:"
-			#ls /etc/systemd/system/ | grep LED
-			ls $ruta_actual/LED-Servicios/ | grep "LED-$pin"
+			ls /etc/systemd/system/ | grep "LED-$pin"
 
 		$a
 		$a
-		$a " --------------------------------------- "
-		$a "| Todos los servicios asignados a LEDs: |"
-		$a " --------------------------------------- "
+		$a " ------------------------------------------------------ "
+		$a "| Todos los servicios con LEDs (/etc/GPIO_LED_SH_PY/): |"
+		$a " ------------------------------------------------------ "
 		$a
-			ls $rutaShPy | grep -v ".py"
-		$a
+		ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
 		$a
 		$a "Fin del programa."
 
@@ -299,10 +292,11 @@ then
 
 
 else
-	$a "Esa opción no está actualmente en el menú..."
+	$a "Esa opción no está en el menú..."
 	sleep 2
 	reset && sh $0
 fi
+
 
 
 
