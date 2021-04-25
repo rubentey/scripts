@@ -3,7 +3,6 @@
 a=echo
 
 # Bienvenida
-$a "*Ejecutar con sudo*"
 $a
 $a " -------------------------------------------------- "
 $a "|  Bienvenid@ al asistente de RPi para .sh + .py,  |"
@@ -12,50 +11,41 @@ $a " -------------------------------------------------- "
 sleep 0.4
 $a
 
-#$a "Menú de opciones disponibles:"
-#$a "---------------------"
-#$a "1 - Ejecutar script con sudo."
-#$a "2 - Consultar LEDs con servicio asignado."
-#$a "3 - Asignar servicio a un LED."
-#$a "4 - Eliminar un servicio asignado a un LED."
-#$a
-#read -p "Elige una opción (número): " menu_inicio
-#clear
-#
-#if [ $menu_inicio -le 4 ];
-#then
-	#case menu_inicio in
-#
-	#1)
-	#$a "1 - Ejecutar script con sudo."
-	#exit && sudo sh $0
-	#;;
-#
-#
-	#2)
-	#$a "2 - Consultar LEDs con servicio asignado."
-	#$a "Actualmente en uso:"
-	#ls ./GPIO_LED_SH_PY/ | grep -v ".py"
-	#$a
-	#read -p "Intro para volver al menú [S/n]: " volver
-	#
-	#	if [ ! "$volver" ];
-	#	then
-	#		sh $0
-	#	else
-	#		$a "Hasta la proxima"
-	#		sleep 2
-	#		reset && exit
-	#	fi
-	#;;
-#
-#
-	#3)
-	#$a "3 - Asignar servicio a un LED."
+$a "Menú opciones disponibles:"
+$a "--------------------------"
+$a "1 - Ejecutar script con sudo (Recomendado)."
+$a "2 - Consultar LEDs y servicio asignado."
+$a "3 - Asignar servicio a un LED."
+$a "4 - Eliminar un servicio asignado a un LED."
+$a
+read -p "Elige una opción (número): " menu_inicio
+clear
 
+if [ $menu_inicio -eq 1 ];
+then
+	$a "1 - Ejecutar script con sudo"
+	reset
+	$a "Ejecutando \"sudo $0\""
+	sudo sh $0 #si esto lo ve mi tutora, me mata
+	
 
-# Introducir número de GPIO para el LED y escribir nombre servicio
+elif [ $menu_inicio -eq 2 ];
+then
+	$a "2 - Consultar LEDs y servicio asignado"
 	$a "Actualmente en uso:"
+	$a "-------------------"
+	ls ./GPIO_LED_SH_PY/ | grep -v ".py"
+	$a
+
+
+elif [ $menu_inicio -eq 3 ];
+then
+	$a "3 - Asignar servicio a un LED"
+	$a "------------------------------"
+	$a
+	# Introducir número de GPIO para el LED y escribir nombre servicio
+	$a "Actualmente en uso:"
+	$a "-------------------"
 	ls ./GPIO_LED_SH_PY/ | grep -v ".py"
 	$a
 	$a "GPIOs que tienen LED, 17 en total:"
@@ -75,14 +65,14 @@ $a
 
 		if [ $pin -ge 1 ] && [ $pin -le 40 ];
 		then
-			#if [ $pin == 7 ] || [ $pin == 11 ] || [ $pin == 12 ] || [ $pin == 13 ] || [ $pin == 15 ] || [ $pin == 16 ] || [ $pin == 18 ] || [ $pin == 22 ] || [ $pin == 29 ] || [ $pin == 31 ] || [ $pin == 32 ] || [ $pin == 33 ] || [ $pin == 35 ] || [ $pin == 36 ] || [ $pin == 37 ] || [ $pin == 38 ] || [ $pin == 40 ];
-			#then
-			#	$a "!El pin $pin tiene LED!"
-			#else
-			#	$a "!El pin $pin no tiene LED!"
-			#	$a "¡Puede dar error si sigues!"
-			#fi
-			$a "" > /dev/null
+			if [ $pin -eq 7 ] || [ $pin -eq 11 ] || [ $pin -eq 12 ] || [ $pin -eq 13 ] || [ $pin -eq 15 ] || [ $pin -eq 16 ] || [ $pin -eq 18 ] || [ $pin -eq 22 ] || [ $pin -eq 29 ] || [ $pin -eq 31 ] || [ $pin -eq 32 ] || [ $pin -eq 33 ] || [ $pin -eq 35 ] || [ $pin -eq 36 ] || [ $pin -eq 37 ] || [ $pin -eq 38 ] || [ $pin -eq 40 ];
+			then
+				$a "!El pin $pin tiene LED!"
+			else
+				$a "!El pin $pin no tiene LED!"
+				$a "¡Puede dar error si sigues!"
+			fi
+			#$a "" > /dev/null
 		else
 			$a "Elige del 1 al 40!"
 			sleep 1.5
@@ -91,13 +81,9 @@ $a
 		fi
 
 
-
-	# Servicio a controlar
+	# Servicio a controlar del sistema
 	read -p "2/2 - Nombre de servicio sin \".service\" (p.e.: cups): " nomServ
 	$a
-
-	#systemctl status $nomServ.service | head -3 | tail -1 | grep "(running)" > /dev/null
-	#if [ $? = 0 ];
 
 	serv_origen_status=$(systemctl status $nomServ.service | head -3 | tail -1 | grep "(running)")
 	if [ "$serv_origen_status" ];
@@ -109,7 +95,6 @@ $a
 	$a
 
 
-
 	# Comprobar que los datos introducidos
 	$a "----------------------------------------"
 	$a "Has elegido el Pin GPIO número: " $pin
@@ -118,14 +103,13 @@ $a
 	$a
 
 
-
 	# Verificar que quiere seguir adelante
 	read -p "¿Quieres continuar (Intro para continuar)? [S/n]: " continuar
 
 	if [ ! "$continuar" ];
 	then
-	$a
-	$a
+		$a
+		$a
 
 
 		#------------------------------------------------------------------------
@@ -186,7 +170,6 @@ $a
 			$a "GPIO.output($pin,1)" >> $nomFinalPY-on.py
 			$a "print (\"LED on\")" >> $nomFinalPY-on.py
 			$a "GPIO.cleanup()" >> $nomFinalPY-on.py
-
 
 
 		#Script python de apagado
@@ -300,7 +283,6 @@ $a
 		$a
 		$a "Fin del programa."
 
-
 	else
 		$a "Saliendo..."
 		sleep 1
@@ -308,32 +290,32 @@ $a
 	fi
 
 
+elif [ $menu_inicio -eq 4 ];
+then
+	$a "4 - Eliminar un servicio asignado a un LED"
+	$a "wip 2021-4-25"
+	$a 
+
+
 else
-	$a "Esa opción no está disponible..."
+	$a "Esa opción no está actualmente en el menú..."
 	sleep 2
 	reset && sh $0
 fi
 
 
 
-	#;;
+read -p "Intro para volver al menú [S/n]: " volver
 
+	if [ ! "$volver" ];
+	then
+		reset && sh $0
+	else
+		$a "Hasta la proxima"
+		sleep 2
+		reset && exit
+	fi
 
-	#4)
-	#$a "4 - Eliminar un servicio asignado a un LED."
-	#$a 
-	#;;
-#
-#
-
-	#*)
-	#$a "Esa opción no está disponible..."
-	#sleep 2
-	#reset && sh $0
-	#;;
-
-	#esac
-	
 
 # Fin script
 
