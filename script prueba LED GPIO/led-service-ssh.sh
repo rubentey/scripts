@@ -288,6 +288,19 @@ elif [ $menu_inicio -eq 4 ];
 then
 	$a "4 - Eliminar un servicio asignado a un LED"
 	$a "wip 2021-4-25"
+	$a
+	$a "Antes en uso (/etc/GPIO_LED_SH_PY/):"
+	$a "-------------------"
+	ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
+	$a
+	$a
+	read -p "Escribe el número concreto del que quieres eliminar: " eliminar_pin
+	# rm del .sh .py y .service, aparte del disable y tal
+	$a
+	$a "Ahora en uso (/etc/GPIO_LED_SH_PY/):"
+	$a "-------------------"
+	ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
+	$a
 	$a 
 
 
