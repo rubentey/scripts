@@ -32,17 +32,17 @@ then
 elif [ $menu_inicio -eq 2 ];
 then
 	$a "2 - Consultar LEDs y servicio asignado"
-		#if [ $(ls /home/ruben/scripts/script_prueba_LED_GPIO/GPIO_LED_SH_PY/ | grep -v ".py") ];
-		#then
+		if [ "\$(ls /etc/GPIO_LED_SH_PY/ | grep -v \".py\")" ];
+		then
 			$a
 			$a "Actualmente en uso (/etc/GPIO_LED_SH_PY/):"
 			$a "-------------------"
 			ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
 			$a
-		#else
-		#	$a "No se han encontrado"
-		#	$a
-		#fi
+		else
+			$a "No se han encontrado"
+			$a
+		fi
 
 elif [ $menu_inicio -eq 3 ];
 then
@@ -132,55 +132,64 @@ then
 				$a "Ya existe la ruta."
 			else
 				mkdir -p /etc/GPIO_LED_SH_PY
-				chmod 777 /etc/GPIO_LED_SH_PY
+				#chmod 777 /etc/GPIO_LED_SH_PY
 				# quizá mejor poner un "chown root:root"
 			fi
 
 
 		$a "2/4 - Script bash estado servicio, hecho."
-			main="LED-$pin-$nomServ"
-			nomFinalSH="/etc/GPIO_LED_SH_PY/$main"
+			#main="LED-$pin-$nomServ"
+			#nomFinalSH="/etc/GPIO_LED_SH_PY/$main"
 
-			$a "#!/bin/bash" > $nomFinalSH.sh
-			$a -e "#$main.sh \n" >> $nomFinalSH.sh
-			$a "while true;" >> $nomFinalSH.sh
-			$a "do" >> $nomFinalSH.sh
-			$a -e "systemctl status $nomServ.service | head -3 | tail -1 | grep \"(running)\" > /dev/null \n" >> $nomFinalSH.sh
-			$a '	if [ $? = 0 ];' >> $nomFinalSH.sh
-			$a "    then" >> $nomFinalSH.sh
-			$a "        python $main-on.py > /dev/null" >> $nomFinalSH.sh
-			$a "        echo "LED SSH on"" >> $nomFinalSH.sh
-			$a "    else" >> $nomFinalSH.sh
-			$a "        python $main-off.py > /dev/null" >> $nomFinalSH.sh
-			$a "        echo "LED SSH off"" >> $nomFinalSH.sh
-			$a -e "    fi \n" >> $nomFinalSH.sh
-			$a "sleep 0.1" >> $nomFinalSH.sh
-			$a "done" >> $nomFinalSH.sh
+			Fichero_SH=/etc/GPIO_LED_SH_PY/LED-$pin-$nomServ.sh
+			Fichero_Py=/etc/GPIO_LED_SH_PY/LED-$pin-$nomServ
+			Fichero_Py_on=$Fichero_Py-on.py
+			Fichero_Py_off=$Fichero_Py-off.py
 
-			chmod +x $nomFinalSH.sh
+			$a "#!/bin/bash" > $Fichero_SH
+			$a "# $Fichero_SH" >> $Fichero_SH
+			$a "" >> $Fichero_SH
+			$a "while true;" >> $Fichero_SH
+			$a "do" >> $Fichero_SH
+			$a "systemctl status $nomServ.service | head -3 | tail -1 | grep \"(running)\" > /dev/null" >> $Fichero_SH
+			$a '	if [ $? = 0 ];' >> $Fichero_SH
+			$a "    then" >> $Fichero_SH
+			$a "        python $Fichero_Py_on > /dev/null" >> $Fichero_SH
+			$a "        echo \"LED $pin $nomServ on\"" >> $Fichero_SH
+			$a "    else" >> $Fichero_SH
+			$a "        python $Fichero_Py_off > /dev/null" >> $Fichero_SH
+			$a "        echo \"LED $pin $nomServ off\"" >> $Fichero_SH
+			$a "    fi" >> $Fichero_SH
+			$a "sleep 0.1" >> $Fichero_SH
+			$a "done" >> $Fichero_SH
+
+			chmod +x $Fichero_SH
 
 
 		#Script python de encendido
 		$a "3/4 - Script python encendido, hecho."
-			
-			nomFinalPY="/etc/GPIO_LED_SH_PY/$main"
 
-			$a "#!/bin/python" > $nomFinalPY-on.py
-			$a -e "#Pin: $pin	Service: $nomServ \n" >> $nomFinalPY-on.py
-			$a -e "import RPi.GPIO as GPIO \n" >> $nomFinalPY-on.py
-			$a "GPIO.setmode(GPIO.BOARD) " >> $nomFinalPY-on.py
-			$a -e "GPIO.setup($pin,GPIO.OUT) \n" >> $nomFinalPY-on.py
-			$a "GPIO.output($pin,1)" >> $nomFinalPY-on.py
-			$a "print (\"LED on\")" >> $nomFinalPY-on.py
-			$a "GPIO.cleanup()" >> $nomFinalPY-on.py
+
+			$a "#!/bin/python" > $Fichero_Py_on
+			$a "# Pin: $pin	Service: $nomServ" >> $Fichero_Py_on
+			$a "" >> $Fichero_Py_on
+			$a "import RPi.GPIO as GPIO" >> $Fichero_Py_on
+			$a "" >> $Fichero_Py_on
+			$a "GPIO.setmode(GPIO.BOARD)" >> $Fichero_Py_on
+			$a "GPIO.setup($pin,GPIO.OUT)" >> $Fichero_Py_on
+			$a "" >> $Fichero_Py_on
+			$a "GPIO.output($pin,1)" >> $Fichero_Py_on
+			$a "print (\"LED $nomServ on\")" >> $Fichero_Py_on
+			$a "GPIO.cleanup()" >> $Fichero_Py_on
 
 
 		#Script python de apagado
 		$a "4/4 - Script python apagado, hecho."
 
-			sed 's/,1)/,0)/g' $nomFinalPY-on.py > $nomFinalPY-temp.py
-			sed 's/on")/off")/g' $nomFinalPY-temp.py > $nomFinalPY-off.py
-			rm -r $nomFinalPY-temp.py
+
+			sed 's/,1)/,0)/g' $Fichero_Py_on > $Fichero_Py-temp.py
+			sed 's/on")/off")/g' $Fichero_Py-temp.py > $Fichero_Py_off
+			rm -r $Fichero_Py-temp.py
 			$a
 
 		#------------------------------------------------------------------------
@@ -189,53 +198,44 @@ then
 		# Crear servicio systemd
 		$a "Servicios controlar script .sh anterior:"
 		# Servicios systemd
-		servicio="LED-$pin-$nomServ-servicio.service"
-		rutaSysd="/etc/systemd/system/"
 
 		$a "1/3 - Servicio, crear ruta carpeta, hecho."
 			# puede que no haya que crear carpeta
-			if [ -d /etc/systemd/system/ ]
-			then
-				$a "Ya existe la ruta."
-			else
-				mkdir -p /etc/systemd/system/
-				chmod 777 /etc/systemd/system/
+			#if [ -d /etc/systemd/system/ ]
+			#then
+			#	$a "Ya existe la ruta."
+			#else
+			#	mkdir -p /etc/systemd/system/
 			# quizá mejor poner un "chown root:root"
-			fi
+			#fi
 
 		
 		$a "2/3 - Servicio, crear archivo .service de $nomServ, hecho."
-			nomFinalSRV=$rutaSysd$servicio
+			Ruta_LED_Servicio=/etc/systemd/system/LED-$pin-$nomServ-servicio.service
 
-			$a "[Unit]" > $nomFinalSRV
-			$a "Description= Servicio de $nomServ para LED en GPIO $pin" >> $nomFinalSRV
-			$a "Documentation=Para + info, mi GitHub: https://github.com/rubentey/scripts" >> $nomFinalSRV
-			$a "After=systemd-user-sessions.service" >> $nomFinalSRV
-			$a -e "Wants=network.target \n" >> $nomFinalSRV
-			$a "[Service]" >> $nomFinalSRV
-			$a "Type=simple" >> $nomFinalSRV
-			$a "ExecStart=/usr/bin/anydesk --service" >> $nomFinalSRV
-			$a "#Restart=on-abort" >> $nomFinalSRV
-			$a "#PIDFile=/var/run/anydesk.pid" >> $nomFinalSRV
-			$a "#KillMode=mixed" >> $nomFinalSRV
-			$a "#TimeoutStopSec=30" >> $nomFinalSRV
-			$a "#User=root" >> $nomFinalSRV
-			$a -e "#LimitNOFILE=100000 \n" >> $nomFinalSRV
-			$a "[Install]" >> $nomFinalSRV
-			$a "WantedBy=multi-user.target" >> $nomFinalSRV
+			$a "[Unit]" > $Ruta_LED_Servicio
+			$a "Description= Servicio de $nomServ para LED en GPIO $pin" >> $Ruta_LED_Servicio
+			$a "Documentation=Para + info, mi GitHub: https://github.com/rubentey/scripts" >> $Ruta_LED_Servicio
+			$a "After=systemd-user-sessions.service" >> $Ruta_LED_Servicio
+			$a "Wants=network.target" >> $Ruta_LED_Servicio
+			$a "" >> $Ruta_LED_Servicio
+			$a "[Service]" >> $Ruta_LED_Servicio
+			$a "Type=simple" >> $Ruta_LED_Servicio
+			$a "ExecStart=/usr/bin/anydesk --service" >> $Ruta_LED_Servicio
+			$a "" >> $Ruta_LED_Servicio
+			$a "[Install]" >> $Ruta_LED_Servicio
+			$a "WantedBy=multi-user.target" >> $Ruta_LED_Servicio
 
 		
 		$a "3/3 - Servicio, habilitar, recargar, reiniciarlo, hecho."
-			sysServ=LED-$pin-$nomServ-servicio
+			LED_Servicio=LED-$pin-$nomServ-servicio
 
-			systemctl enable $sysServ
+			systemctl enable $LED_Servicio
 			systemctl daemon-reload
-			systemctl restart $sysServ
-
+			systemctl restart $LED_Servicio
 
 
 		#------------------------------------------------------------------------
-
 
 
 		# Resumen de lo que se ha hecho
@@ -287,7 +287,6 @@ then
 elif [ $menu_inicio -eq 4 ];
 then
 	$a "4 - Eliminar un servicio asignado a un LED"
-	$a "wip 2021-4-25"
 	$a
 	$a "Antes en uso (/etc/GPIO_LED_SH_PY/):"
 	$a "-------------------"
@@ -295,21 +294,54 @@ then
 	$a
 	$a
 	read -p "Escribe el número concreto del que quieres eliminar: " eliminar_pin
-	# rm del .sh .py y .service, aparte del disable y tal
-	$a
-	$a "Ahora en uso (/etc/GPIO_LED_SH_PY/):"
-	$a "-------------------"
-	ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
-	$a
-	$a 
+	
+	if [ "$eliminar_pin" ];
+	then
+		$a
+		eliminar_servicio=$(ls /etc/systemd/system/ | grep "servicio.service" | grep $eliminar_pin)
+			if [ $?  = 0 ];
+			then
+				$a "Parar $eliminiar_servicio"
+				systemctl stop $eliminar_servicio
+				$a "Deshabilitar $eliminar_servicio"
+				systemctl disable $eliminar_servicio
+				$a "Quitar $eliminar_servicio del sistema"
+				cd /etc/systemd/system/
+				rm -r $eliminar_servicio
 
+				cd /etc/GPIO_LED_SH_PY/
+				eliminar_sh=$(ls /etc/GPIO_LED_SH_PY | grep "LED-$eliminar_pin" | grep ".sh")
+				rm -r $eliminar_sh
+
+				eliminar_py_on=$(ls /etc/GPIO_LED_SH_PY | grep "LED-$eliminar_pin" | grep "on.py")
+				rm -r $eliminar_py_on
+
+				eliminar_py_off=$(ls /etc/GPIO_LED_SH_PY | grep "LED-$eliminar_pin" | grep "off.py")
+				python $eliminar_py_off
+				rm -r $eliminar_py_off
+
+				$a
+				$a "Ahora en uso (/etc/GPIO_LED_SH_PY/):"
+				$a "-------------------"
+				ls /etc/GPIO_LED_SH_PY/ | grep -v ".py"
+				$a
+				$a 
+			else
+				$a "No se ha encontrado ese número..."
+				$a
+				sleep 1
+			fi
+	else
+		$a "Número erróneo..."
+		$a
+		sleep 1
+	fi
 
 else
 	$a "Esa opción no está en el menú..."
 	sleep 2
 	reset && sh $0
 fi
-
 
 
 
@@ -324,6 +356,4 @@ read -p "Intro para volver al menú [S/n]: " volver
 		reset && exit
 	fi
 
-
 # Fin script
-
