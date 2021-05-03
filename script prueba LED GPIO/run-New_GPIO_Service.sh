@@ -155,7 +155,7 @@ then
 			$a '	if [ $? = 0 ];' >> $Fichero_SH
 			$a "    then" >> $Fichero_SH
 			$a "        python $Fichero_Py_on > /dev/null" >> $Fichero_SH
-			$a "        echo \"LED $pin $nomServ on\"" >> $Fichero_SH
+			$a "        echo \"LED $pin $nomServ on - .sh\"" >> $Fichero_SH
 			$a "    else" >> $Fichero_SH
 			$a "        python $Fichero_Py_off > /dev/null" >> $Fichero_SH
 			$a "        echo \"LED $pin $nomServ off - .sh\"" >> $Fichero_SH
@@ -174,12 +174,15 @@ then
 			$a "# Pin: $pin	Service: $nomServ" >> $Fichero_Py_on
 			$a "" >> $Fichero_Py_on
 			$a "import RPi.GPIO as GPIO" >> $Fichero_Py_on
+			$a "import time" >> $Fichero_Py_on
 			$a "" >> $Fichero_Py_on
 			$a "GPIO.setmode(GPIO.BOARD)" >> $Fichero_Py_on
 			$a "GPIO.setup($pin,GPIO.OUT)" >> $Fichero_Py_on
 			$a "" >> $Fichero_Py_on
 			$a "GPIO.output($pin,1)" >> $Fichero_Py_on
 			$a "print (\"LED $nomServ on - .py\")" >> $Fichero_Py_on
+			$a "time.sleep(2)" >> $Fichero_Py_on
+			$a "" >> $Fichero_Py_on
 			$a "GPIO.cleanup()" >> $Fichero_Py_on
 
 
@@ -215,13 +218,14 @@ then
 
 			$a "[Unit]" > $Ruta_LED_Servicio
 			$a "Description= Servicio de $nomServ para LED en GPIO $pin" >> $Ruta_LED_Servicio
-			$a "Documentation=Para + info, mi GitHub: https://github.com/rubentey/scripts" >> $Ruta_LED_Servicio
+			$a "Documentation= https://github.com/rubentey/scripts" >> $Ruta_LED_Servicio
 			$a "After=systemd-user-sessions.service" >> $Ruta_LED_Servicio
 			$a "Wants=network.target" >> $Ruta_LED_Servicio
 			$a "" >> $Ruta_LED_Servicio
 			$a "[Service]" >> $Ruta_LED_Servicio
 			$a "Type=simple" >> $Ruta_LED_Servicio
 			#$a "ExecStart=/usr/bin/anydesk --service" >> $Ruta_LED_Servicio
+			$a "ExecStart=$Fichero_SH" >> $Ruta_LED_Servicio
 			$a "" >> $Ruta_LED_Servicio
 			$a "[Install]" >> $Ruta_LED_Servicio
 			$a "WantedBy=multi-user.target" >> $Ruta_LED_Servicio
