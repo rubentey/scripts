@@ -1,0 +1,12 @@
+[Unit]
+Description= Servicio de sshd para LED en GPIO 40
+Documentation= https://github.com/rubentey/scripts
+After=systemd-user-sessions.service
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/etc/GPIO_LED_SH_PY/LED-40-sshd.sh
+
+[Install]
+WantedBy=multi-user.target
