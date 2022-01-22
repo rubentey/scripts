@@ -1,4 +1,4 @@
-** Solo se necesita descargar "run-New_GPIO_Service.sh".
+<b>** Solo se necesita descargar "run-New_GPIO_Service.sh".</b>
    Con este, ya se crean los demás archivos.
 
 
